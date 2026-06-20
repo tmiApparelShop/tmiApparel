@@ -1,61 +1,50 @@
 import React, { useState, useEffect } from 'react'
+import ReactDOM from 'react-dom/client'
+import { createClient } from '@supabase/supabase-js'
 import { ShoppingBag, Search, Menu, ArrowRight, Heart, Loader2 } from 'lucide-react'
 
-/**
- * TMIApparel.com - Main Storefront & Entry Point
- * Cleaned up manual render calls to comply with the platform's React Contract
- * and prevent version/runtime conflicts in react-dom.
- */
+// Read the secure environment variables you added in Cloudflare Pages
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+
+// Safely initialize the client if credentials exist
+const supabase = (supabaseUrl && supabaseKey) 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
 const App = () => {
-  const [supabase, setSupabase] = useState(null);
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 1. Initialize Supabase Client dynamically
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/@supabase/supabase-js@2';
-    script.async = true;
-    script.onload = () => {
-      // Add your Supabase keys here for dynamic fetching
-      const supabaseUrl = ""; 
-      const supabaseKey = ""; 
-      
-      if (supabaseUrl && supabaseKey && window.supabase) {
-        const client = window.supabase.createClient(supabaseUrl, supabaseKey);
-        setSupabase(client);
-      }
-    };
-    document.head.appendChild(script);
-    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
-  }, []);
-
-  // 2. Fetch or load mock products
+  // Fetch data on mount
   useEffect(() => {
     const fetchProducts = async () => {
       if (supabase) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .limit(10);
-        
-        if (!error && data && data.length > 0) {
-          setProducts(data.map(p => ({
-            id: p.id,
-            name: p.title,
-            price: `$${p.price}`,
-            category: p.category || "General",
-            img: p.image_src || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400"
-          })));
-          setLoading(false);
-          return;
+        try {
+          const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .limit(10);
+          
+          if (!error && data && data.length > 0) {
+            setProducts(data.map(p => ({
+              id: p.id,
+              name: p.title,
+              price: `$${p.price}`,
+              category: p.category || "General",
+              img: p.image_src || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400"
+            })));
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.warn("Database connection issue, loading local products:", err);
         }
       }
 
-      // Local fallback products derived from products_export_1.csv
+      // Fallback products from your products_export_1 (1)_2.csv
       const fallbackProducts = [
         { 
           id: 1, 
@@ -91,7 +80,7 @@ const App = () => {
     };
 
     fetchProducts();
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -234,4 +223,9 @@ const App = () => {
   );
 };
 
-export default App;
+// Mount the React app to the HTML structure
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)

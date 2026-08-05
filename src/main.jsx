@@ -18,7 +18,7 @@ import {
  * TMI Apparel - Unified Main Storefront & Headless WordPress Journal
  * Integrates:
  * - Product Storefront (Supabase + Local CSV Fallbacks)
- * - Headless WordPress.com Journal (https://public-api.wordpress.com/wp/v2/sites/tmiapparel.wordpress.com/posts)
+ * - Headless WordPress.com Journal (https://public-api.wordpress.com/wp/v2/sites/mytmiapparel.wordpress.com/posts)
  */
 
 // Initialize Supabase Client
@@ -26,8 +26,8 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
-// WordPress REST API Target
-const WORDPRESS_API_URL = "https://public-api.wordpress.com/wp/v2/sites/tmiapparel.wordpress.com/posts?_embed";
+// Updated WordPress REST API Target (Your new public site)
+const WORDPRESS_API_URL = "https://public-api.wordpress.com/wp/v2/sites/mytmiapparel.wordpress.com/posts?_embed";
 
 export default function App() {
   const [view, setView] = useState('shop'); // 'shop' | 'journal'

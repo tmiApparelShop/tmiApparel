@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createClient } from '@supabase/supabase-js';
 import { 
   ShoppingBag, 
   Search, 
@@ -9,14 +8,10 @@ import {
   Loader2, 
   X,
   ChevronDown,
-  Cpu // Added a microchip icon
+  Cpu 
 } from 'lucide-react';
 
-// Initialize Supabase Client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
-const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
-
+// WordPress REST API Target for the News Feed
 const WORDPRESS_API_URL = "https://public-api.wordpress.com/wp/v2/sites/mytmiapparel.wordpress.com/posts?_embed";
 
 function App() {
@@ -28,37 +23,36 @@ function App() {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
+  // 1. Fetch Products via Secure Cloudflare Function (Printify & Printful)
   useEffect(() => {
     const fetchProducts = async () => {
       setLoadingProducts(true);
-      if (supabase) {
-        try {
-          const { data, error } = await supabase.from('products').select('*').limit(12);
-          if (!error && data && data.length > 0) {
-            setProducts(data.map(p => ({
-              id: p.id,
-              name: p.title,
-              price: `$${typeof p.price === 'number' ? p.price.toFixed(2) : p.price}`,
-              img: p.image_src || "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400"
-            })));
-            setLoadingProducts(false);
-            return;
-          }
-        } catch (err) {
-          console.warn("Supabase fetch error:", err);
+      
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const apiProducts = await res.json();
+          setProducts(apiProducts);
+          setLoadingProducts(false);
+          return;
         }
+      } catch (err) {
+        console.warn("API fetch failed, using fallbacks:", err);
       }
 
+      // Fallback data if the API fails or is loading
       const fallbackProducts = [
-        { id: 1, name: "Citizens Feedback Unisex T-Shirt", price: "$39.50", img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400" },
-        { id: 2, name: "TMI Signature Hoodie", price: "$85.00", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400" }
+        { id: 1, name: "SYSTEM_ERROR_TEE", price: "$00.00", img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=400" },
+        { id: 2, name: "CORRUPTED_HOODIE", price: "$00.00", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=400" }
       ];
       setProducts(fallbackProducts);
       setLoadingProducts(false);
     };
+    
     fetchProducts();
   }, []);
 
+  // 2. Fetch WordPress News Feed
   useEffect(() => {
     if (view === 'news' && posts.length === 0) {
       const fetchWordPressPosts = async () => {
@@ -107,7 +101,6 @@ function App() {
               onClick={() => { setView('shop'); setSelectedPost(null); }} 
               className="border border-[#00E5FF] p-3 text-center cursor-pointer relative group bg-[#00E5FF]/5 shadow-[0_0_15px_rgba(0,229,255,0.1)]"
             >
-              {/* Microchip graphic placeholder */}
               <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[#00E5FF] bg-[#030712] px-1 group-hover:-translate-y-1 transition-transform">
                 <Cpu size={24} />
               </div>

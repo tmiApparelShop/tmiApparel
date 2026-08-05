@@ -22,20 +22,20 @@ function App() {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Production Cart State
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cart, setCart] = useState(() => {
-    // Load persisted cart from local storage on boot
     const savedCart = localStorage.getItem('tmi_cart');
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  // Save cart to local storage whenever it changes
   useEffect(() => {
     localStorage.setItem('tmi_cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Handle Cart Operations
   const addToCart = (product) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
@@ -108,6 +108,32 @@ function App() {
   return (
     <div className="min-h-screen bg-[#030712] text-white font-sans selection:bg-[#00E5FF] selection:text-black overflow-x-hidden">
       
+      {/* MOBILE NAVIGATION OVERLAY */}
+      <div className={`fixed inset-0 bg-[#030712]/95 backdrop-blur-md z-[110] transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} flex flex-col`}>
+        <div className="flex justify-end p-6 border-b border-[#00E5FF]/20">
+          <button onClick={() => setIsMobileMenuOpen(false)} className="text-[#00E5FF] hover:text-white transition">
+            <X size={32} />
+          </button>
+        </div>
+        <div className="flex flex-col items-center justify-center flex-1 space-y-8 text-xl font-black uppercase tracking-[0.2em] text-white/60">
+          <button 
+            onClick={() => { setView('shop'); setSelectedPost(null); setIsMobileMenuOpen(false); }} 
+            className={`transition ${view === 'shop' ? 'text-[#00E5FF] shadow-[0_2px_0_#00E5FF]' : 'hover:text-white'}`}
+          >
+            Home
+          </button>
+          <button className="hover:text-white transition">Collections</button>
+          <button className="hover:text-white transition">Contact</button>
+          <button className="hover:text-white transition">About Us</button>
+          <button 
+            onClick={() => { setView('news'); setSelectedPost(null); setIsMobileMenuOpen(false); }} 
+            className={`transition ${view === 'news' ? 'text-[#00E5FF] shadow-[0_2px_0_#00E5FF]' : 'hover:text-white'}`}
+          >
+            News
+          </button>
+        </div>
+      </div>
+
       {/* Slide-out Cart UI */}
       <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] transition-opacity duration-300 ${isCartOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-[#050B14] border-l border-[#00E5FF]/30 p-6 shadow-[-20px_0_50px_rgba(0,229,255,0.1)] transform transition-transform duration-300 ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
@@ -168,6 +194,7 @@ function App() {
               <span className="text-[7px] tracking-[0.3em] uppercase block mt-1 text-[#00E5FF]">Hardware / Logic</span>
             </div>
 
+            {/* Desktop Nav Links */}
             <div className="hidden lg:flex space-x-8 text-sm font-bold uppercase tracking-widest text-white/60">
               <button onClick={() => { setView('shop'); setSelectedPost(null); }} className={`transition ${view === 'shop' ? 'text-[#00E5FF] shadow-[0_2px_0_#00E5FF]' : 'hover:text-white'}`}>Home</button>
               <button className="hover:text-white transition">Collections</button>
@@ -187,7 +214,12 @@ function App() {
               <ShoppingBag size={20} className="group-hover:text-white transition" />
               {cart.length > 0 && <span className="absolute -top-2 -right-2 bg-[#00E5FF] text-black text-[10px] w-5 h-5 flex items-center justify-center rounded-none font-bold shadow-[0_0_10px_#00E5FF]">{cart.reduce((a, b) => a + b.quantity, 0)}</span>}
             </div>
-            <Menu size={24} className="lg:hidden cursor-pointer hover:text-white transition" />
+            {/* Mobile Hamburger Trigger */}
+            <Menu 
+              size={24} 
+              className="lg:hidden cursor-pointer hover:text-white transition" 
+              onClick={() => setIsMobileMenuOpen(true)}
+            />
           </div>
         </div>
       </nav>
@@ -230,7 +262,6 @@ function App() {
                     <div className="aspect-square bg-black mb-6 overflow-hidden border border-[#00E5FF]/20 relative">
                       <img src={product.img} alt={product.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition duration-500 mix-blend-luminosity group-hover:mix-blend-normal" />
                       
-                      {/* ADD TO CART OVERLAY BUTTON */}
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button onClick={() => addToCart(product)} className="border border-[#00E5FF] bg-[#00E5FF]/20 text-white font-bold uppercase tracking-widest text-xs py-3 px-6 hover:bg-[#00E5FF] hover:text-black transition-colors">
                           EXTRACT TO CART

@@ -1,10 +1,8 @@
-// functions/api/checkout.js
-
 export async function onRequestPost(context) {
   // 1. Grab the secure environment variables from Cloudflare
   const { env, request } = context;
   const printifyApiKey = env.PRINTIFY_API_KEY;
-  const printifyShopId = env.PRINTIFY_SHOP_ID; // You will also need to save your Shop ID in Cloudflare
+  const printifyShopId = env.PRINTIFY_SHOP_ID;
 
   // If the keys are missing in the Cloudflare dashboard, stop immediately
   if (!printifyApiKey || !printifyShopId) {
@@ -20,10 +18,10 @@ export async function onRequestPost(context) {
 
     // 3. Construct the official Printify Order payload
     const printifyPayload = {
-      external_id: `TMI-${Date.now()}`, // Generates a unique order number
-      label: "TMI Apparel Website Order",
+      external_id: `TMI-${Date.now()}`, // Generates a unique order number based on the timestamp
+      label: "Too Much Information Apparel Order", 
       line_items: orderData.cartItems.map(item => ({
-        variant_id: item.printify_variant_id, // The specific Printify ID for that shirt size/color
+        variant_id: item.id, // For a live order, this MUST be the specific Printify Variant ID
         quantity: item.quantity
       })),
       shipping_method: 1, // 1 = Standard Shipping
@@ -42,20 +40,18 @@ export async function onRequestPost(context) {
     };
 
     // 4. Send the secure POST request directly from Cloudflare to Printify
-    // Printify limits this specific Catalog API endpoint to 100 requests per minute
     const printifyResponse = await fetch(`https://api.printify.com/v1/shops/${printifyShopId}/orders.json`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${printifyApiKey}`,
-        "Content-Type": "application/json;charset=utf-8",
-        "User-Agent": "TMI-Apparel-Storefront"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(printifyPayload)
     });
 
     const result = await printifyResponse.json();
 
-    // Catch any errors Printify throws (e.g., out of stock, bad address)
+    // Catch any errors Printify throws (e.g., out of stock, missing address fields)
     if (!printifyResponse.ok) {
       console.error("Printify API Error:", result);
       return new Response(JSON.stringify({ error: "Order failed at Printify", details: result }), { 
@@ -64,7 +60,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    // 5. Send a success message back to the React frontend to show the "Thank You" screen
+    // 5. Send a success message back to the React frontend
     return new Response(JSON.stringify({ success: true, order_id: result.id }), {
       status: 200,
       headers: { "Content-Type": "application/json" }

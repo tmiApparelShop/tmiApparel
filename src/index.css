@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbar for your Cart UI */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #030712; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #00E5FF; 
+}

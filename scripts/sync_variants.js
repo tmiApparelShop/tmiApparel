@@ -11,7 +11,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Must use service role to write
 const printfulKey = process.env.PRINTFUL_API_KEY;
 const printifyKey = process.env.PRINTIFY_API_KEY;
-const printifyStoreId = process.env.PRINTIFY_STORE_ID;
+const printifyStoreId = process.env.PRINTIFY_SHOP_ID;
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error("❌ Missing Supabase credentials in environment variables.");
